@@ -13,7 +13,7 @@ Privacy preservation is a sensitive issue for many applications involving neural
 
     You can select the functions by parameters in src/params.h
     //#define ORI			//Original LeNet-5 using PlainText
-      #define PLAIN 		//Proposed LeNet-5 using PlainText
+    //#define PLAIN 		//Proposed LeNet-5 using PlainText
     //#define CPU			//Proposed LeNet-5 using ChiperText(by IPFE)
     //#define GPU			//Proposed LeNet-5 using ChiperText(by cuFE)
 

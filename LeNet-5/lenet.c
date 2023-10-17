@@ -545,12 +545,8 @@ void sec_CONVOLUTION_FORWARD(uint32_t input[INPUT][LENGTH_FEATURE1][LENGTH_FEATU
 #endif
 #ifdef GPU
     uint32_t dy2[SIFE_NMODULI][SIFE_N];
-	// uint32_t* d_y = (uint32_t*)malloc(TERMS*2*SIFE_NMODULI*SIFE_N*sizeof(uint32_t));
-	// double term[TERMS*TERMS][4] = {0};
-	// uint32_t* d_y = (uint32_t*)malloc(LENGTH_FEATURE1*TERMS*2*SIFE_NMODULI*SIFE_N*sizeof(uint32_t));
-	// double term[LENGTH_FEATURE1][TERMS*TERMS][4] = {0};
-	uint32_t* d_y = (uint32_t*)malloc(LENGTH_FEATURE1*LENGTH_FEATURE1*TERMS*2*SIFE_NMODULI*SIFE_N*sizeof(uint32_t));
-	double term[LENGTH_FEATURE1][LENGTH_FEATURE1][TERMS*TERMS][4] = {0};
+    uint32_t* d_y = (uint32_t*)malloc(TERMS*2*SIFE_NMODULI*SIFE_N*sizeof(uint32_t));
+    double term[TERMS*TERMS][4] = {0};
 #endif
 	double temp = 0;
 	int temp2 = 0;
@@ -640,149 +636,38 @@ void sec_CONVOLUTION_FORWARD(uint32_t input[INPUT][LENGTH_FEATURE1][LENGTH_FEATU
 		}
 #endif
 #ifdef GPU
-		// Naive 코드
-		// for (int o0 = 0; o0 < GETLENGTH(output[j]); ++o0)
-		// {								
-		// 	for (int o1 = 0; o1 < GETLENGTH(*(output[j])); ++o1)
-		// 	{
-		// 		for(int l=0; l<TERMS; l++)
-		// 			for(int m=0; m<TERMS; m++)
-		// 			{
-		// 				for(int n=0; n<2; n++)
-		// 					for(int o=0; o<2; o++)
-		// 					{
-		// 						rlwe_sife_decrypt_gmp_gui3((uint32_t*)input[0][o0][o1][l][n], (uint32_t*)y[m][o], (uint32_t*)sk_y[m][o], (uint32_t*)d_y, 1);
-		// 						memcpy(dy2, d_y + 0 * SIFE_NMODULI * SIFE_N, SIFE_NMODULI*SIFE_N*sizeof(uint32_t));
-		// 						term[TERMS*l+m][2*n+o] = round_extract_gmp2(dy2);
-		// 						if ((int)term[TERMS*l+m][2*n+o] >= SIFE_P)
-		// 							term[TERMS*l+m][2*n+o] = 0;
-		// 					}
-		// 			}
-
-		// 		for(int l=0; l<TERMS; l++)
-		// 			for(int m=0; m<TERMS; m++)
-		// 			{
-		// 				term[TERMS*l+m][0] = term[TERMS*l+m][0] - term[TERMS*l+m][1] - term[TERMS*l+m][2] + term[TERMS*l+m][3];
-		// 			}
-
-		// 		if(TERMS==1)
-        // 			output[j][o0][o1] = term[0][0]/UNKNOWN/UNKNOWN;
-		// 		else if(TERMS==2)
-		// 			output[j][o0][o1] = (term[0][0] + ((term[1][0] + term[2][0]) + term[3][0]/UNKNOWN)/UNKNOWN)/UNKNOWN/UNKNOWN;
-		// 		else if(TERMS==3)
-		// 			output[j][o0][o1] = (term[0][0] + ((term[1][0] + term[3][0]) + ((term[2][0] + term[4][0] + term[6][0]) + ((term[5][0] + term[7][0]) + term[8][0]/UNKNOWN)/UNKNOWN)/UNKNOWN)/UNKNOWN)/UNKNOWN/UNKNOWN;
-		// 	}
-		// }
-
-		// Optimized 코드
-		// for (int o0 = 0; o0 < GETLENGTH(output[j]); ++o0)
-		// {								
-		// 	for (int o1 = 0; o1 < GETLENGTH(*(output[j])); ++o1)
-		// 	{
-		// 		for(int m=0; m<TERMS; m++)
-		// 			for(int o=0; o<2; o++)
-		// 			{
-		// 				rlwe_sife_decrypt_gmp_gui3((uint32_t*)input[0][o0][o1], (uint32_t*)y[m][o], (uint32_t*)sk_y[m][o], (uint32_t*)d_y, TERMS*2);
-		// 				for(int l=0; l<TERMS; l++)
-		// 					for(int n=0; n<2; n++)
-		// 					{
-		// 						memcpy(dy2, d_y + (l * 2 + n) * SIFE_NMODULI * SIFE_N, SIFE_NMODULI*SIFE_N*sizeof(uint32_t));
-		// 						term[TERMS*l+m][2*n+o] = round_extract_gmp2(dy2);
-		// 						if ((int)term[TERMS*l+m][2*n+o] >= SIFE_P)
-		// 							term[TERMS*l+m][2*n+o] = 0;
-		// 					}
-		// 			}
-
-		// 		for(int l=0; l<TERMS; l++)
-		// 			for(int m=0; m<TERMS; m++)
-		// 			{
-		// 				term[TERMS*l+m][0] = term[TERMS*l+m][0] - term[TERMS*l+m][1] - term[TERMS*l+m][2] + term[TERMS*l+m][3];
-		// 			}
-
-		// 		if(TERMS==1)
-        // 			output[j][o0][o1] = term[0][0]/UNKNOWN/UNKNOWN;
-		// 		else if(TERMS==2)
-		// 			output[j][o0][o1] = (term[0][0] + ((term[1][0] + term[2][0]) + term[3][0]/UNKNOWN)/UNKNOWN)/UNKNOWN/UNKNOWN;
-		// 		else if(TERMS==3)
-		// 			output[j][o0][o1] = (term[0][0] + ((term[1][0] + term[3][0]) + ((term[2][0] + term[4][0] + term[6][0]) + ((term[5][0] + term[7][0]) + term[8][0]/UNKNOWN)/UNKNOWN)/UNKNOWN)/UNKNOWN)/UNKNOWN/UNKNOWN;
-		// 	}
-		// }
-
-		// Optimized 코드
-		// for (int o0 = 0; o0 < LENGTH_FEATURE1; ++o0)
-		// {								
-		// 	for(int m=0; m<TERMS; m++)
-		// 		for(int o=0; o<2; o++)
-		// 		{
-		// 			rlwe_sife_decrypt_gmp_gui3((uint32_t*)input[0][o0], (uint32_t*)y[m][o], (uint32_t*)sk_y[m][o], (uint32_t*)d_y, LENGTH_FEATURE1*TERMS*2);
-		// 			for (int o1 = 0; o1 < LENGTH_FEATURE1; ++o1)
-		// 			{
-		// 				for(int l=0; l<TERMS; l++)
-		// 					for(int n=0; n<2; n++)
-		// 					{
-		// 						memcpy(dy2, d_y + (o1 * TERMS * 2 + l * 2 + n) * SIFE_NMODULI * SIFE_N, SIFE_NMODULI*SIFE_N*sizeof(uint32_t));
-		// 						term[o1][TERMS*l+m][2*n+o] = round_extract_gmp2(dy2);
-		// 						if ((int)term[o1][TERMS*l+m][2*n+o] >= SIFE_P)
-		// 							term[o1][TERMS*l+m][2*n+o] = 0;
-		// 					}
-		// 			}
-		// 		}
-
-		// 	for (int o1 = 0; o1 < LENGTH_FEATURE1; ++o1)
-		// 	{
-		// 		for(int l=0; l<TERMS; l++)
-		// 			for(int m=0; m<TERMS; m++)
-		// 			{
-		// 				term[o1][TERMS*l+m][0] = term[o1][TERMS*l+m][0] - term[o1][TERMS*l+m][1] - term[o1][TERMS*l+m][2] + term[o1][TERMS*l+m][3];
-		// 			}
-
-		// 		if(TERMS==1)
-        // 			output[j][o0][o1] = term[o1][0][0]/UNKNOWN/UNKNOWN;
-		// 		else if(TERMS==2)
-		// 			output[j][o0][o1] = (term[o1][0][0] + ((term[o1][1][0] + term[o1][2][0]) + term[o1][3][0]/UNKNOWN)/UNKNOWN)/UNKNOWN/UNKNOWN;
-		// 		else if(TERMS==3)
-		// 			output[j][o0][o1] = (term[o1][0][0] + ((term[o1][1][0] + term[o1][3][0]) + ((term[o1][2][0] + term[o1][4][0] + term[o1][6][0]) + ((term[o1][5][0] + term[o1][7][0]) + term[o1][8][0]/UNKNOWN)/UNKNOWN)/UNKNOWN)/UNKNOWN)/UNKNOWN/UNKNOWN;
-		// 	}
-		// }
-
-		// Optimized 코드
-		for(int m=0; m<TERMS; m++)
-			for(int o=0; o<2; o++)
-			{
-				rlwe_sife_decrypt_gmp_gui3((uint32_t*)input[0], (uint32_t*)y[m][o], (uint32_t*)sk_y[m][o], (uint32_t*)d_y, LENGTH_FEATURE1*LENGTH_FEATURE1*TERMS*2);
-				for (int o0 = 0; o0 < LENGTH_FEATURE1; ++o0)
-				{								
-					for (int o1 = 0; o1 < LENGTH_FEATURE1; ++o1)
-					{
-						for(int l=0; l<TERMS; l++)
-							for(int n=0; n<2; n++)
-							{
-								memcpy(dy2, d_y + (o0* LENGTH_FEATURE1 * TERMS * 2 + o1 * TERMS * 2 + l * 2 + n) * SIFE_NMODULI * SIFE_N, SIFE_NMODULI*SIFE_N*sizeof(uint32_t));
-								term[o0][o1][TERMS*l+m][2*n+o] = round_extract_gmp2(dy2);
-								if ((int)term[o0][o1][TERMS*l+m][2*n+o] >= SIFE_P)
-									term[o0][o1][TERMS*l+m][2*n+o] = 0;
-							}
-					}
-				}
-			}
-
-		for (int o0 = 0; o0 < LENGTH_FEATURE1; ++o0)
+		Optimized 코드
+		for (int o0 = 0; o0 < GETLENGTH(output[j]); ++o0)
 		{								
-			for (int o1 = 0; o1 < LENGTH_FEATURE1; ++o1)
+			for (int o1 = 0; o1 < GETLENGTH(*(output[j])); ++o1)
 			{
-				for(int l=0; l<TERMS; l++)
-					for(int m=0; m<TERMS; m++)
+				for(int m=0; m<TERMS; m++)
+					for(int o=0; o<2; o++)
 					{
-						term[o0][o1][TERMS*l+m][0] = term[o0][o1][TERMS*l+m][0] - term[o0][o1][TERMS*l+m][1] - term[o0][o1][TERMS*l+m][2] + term[o0][o1][TERMS*l+m][3];
-					}
+						rlwe_sife_decrypt_gmp_gui3((uint32_t*)input[0][o0][o1], (uint32_t*)y[m][o], (uint32_t*)sk_y[m][o], (uint32_t*)d_y, TERMS*2);
+						for(int l=0; l<TERMS; l++)
+		 					for(int n=0; n<2; n++)
+		 					{
+		 						memcpy(dy2, d_y + (l * 2 + n) * SIFE_NMODULI * SIFE_N, SIFE_NMODULI*SIFE_N*sizeof(uint32_t));
+		 						term[TERMS*l+m][2*n+o] = round_extract_gmp2(dy2);
+		 						if ((int)term[TERMS*l+m][2*n+o] >= SIFE_P)
+		 							term[TERMS*l+m][2*n+o] = 0;
+		 					}
+		 			}
 
-				if(TERMS==1)
-        			output[j][o0][o1] = term[o0][o1][0][0]/UNKNOWN/UNKNOWN;
-				else if(TERMS==2)
-					output[j][o0][o1] = (term[o0][o1][0][0] + ((term[o0][o1][1][0] + term[o0][o1][2][0]) + term[o0][o1][3][0]/UNKNOWN)/UNKNOWN)/UNKNOWN/UNKNOWN;
-				else if(TERMS==3)
-					output[j][o0][o1] = (term[o0][o1][0][0] + ((term[o0][o1][1][0] + term[o0][o1][3][0]) + ((term[o0][o1][2][0] + term[o0][o1][4][0] + term[o0][o1][6][0]) + ((term[o0][o1][5][0] + term[o0][o1][7][0]) + term[o0][o1][8][0]/UNKNOWN)/UNKNOWN)/UNKNOWN)/UNKNOWN)/UNKNOWN/UNKNOWN;
-			}
+		 		for(int l=0; l<TERMS; l++)
+		 			for(int m=0; m<TERMS; m++)
+		 			{
+		 				term[TERMS*l+m][0] = term[TERMS*l+m][0] - term[TERMS*l+m][1] - term[TERMS*l+m][2] + term[TERMS*l+m][3];
+		 			}
+
+		 		if(TERMS==1)
+         			output[j][o0][o1] = term[0][0]/UNKNOWN/UNKNOWN;
+		 		else if(TERMS==2)
+		 			output[j][o0][o1] = (term[0][0] + ((term[1][0] + term[2][0]) + term[3][0]/UNKNOWN)/UNKNOWN)/UNKNOWN/UNKNOWN;
+		 		else if(TERMS==3)
+		 			output[j][o0][o1] = (term[0][0] + ((term[1][0] + term[3][0]) + ((term[2][0] + term[4][0] + term[6][0]) + ((term[5][0] + term[7][0]) + term[8][0]/UNKNOWN)/UNKNOWN)/UNKNOWN)/UNKNOWN)/UNKNOWN/UNKNOWN;
+		 	}
 		}
 #endif
 	}

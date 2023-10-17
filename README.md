@@ -12,12 +12,16 @@ Privacy preservation is a sensitive issue for many applications involving neural
 1) The main function calls a data reading, a model loading, and either one of the two testing functions.
 
     You can select the functions by parameters in src/params.h
+   
     //#define ORI			//Original LeNet-5 using PlainText
+   
     //#define PLAIN 		//Proposed LeNet-5 using PlainText
+   
     //#define CPU			//Proposed LeNet-5 using ChiperText(by IPFE)
+   
     //#define GPU			//Proposed LeNet-5 using ChiperText(by cuFE)
 
-2) The testing function calls one of the predict functions.
+3) The testing function calls one of the predict functions.
 
     ORI mode: use Predict(lenet, &features, 10). It is the same with the original LeNet-5 library.
     PLAIN mode: use sec_Predict(lenet, &features, 10). It uses the proposed polynomial convolution layer without encryption. It is used to compare ORI and CPU mode.
@@ -25,7 +29,7 @@ Privacy preservation is a sensitive issue for many applications involving neural
     GPU mode: use sec_Predict(lenet, &features, 10, msk). It uses the proposed QuripfeNet implemented on GPU and includes all the proposed techniques.
     * You may also comment out one of the prediction functions for testing.
 
-3) Run the following commands to test the CNN classification protected by IPFE.
+4) Run the following commands to test the CNN classification protected by IPFE.
     $ ulimit -s unlimited
 
     Run the code as follow:

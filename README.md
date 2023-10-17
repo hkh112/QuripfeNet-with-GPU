@@ -12,10 +12,10 @@ Privacy preservation is a sensitive issue for many applications involving neural
 1) The main function calls a data reading, a model loading, and either one of the two testing functions.
 
     You can select the functions by parameters in src/params.h
-    //#define ORI			//Original LeNet-5 using PlainText
-    //#define PLAIN 		//Proposed LeNet-5 using PlainText
-    //#define CPU			//Proposed LeNet-5 using ChiperText(by IPFE)
-    //#define GPU			//Proposed LeNet-5 using ChiperText(by cuFE)
+    * #define ORI			//Original LeNet-5 using PlainText
+    * #define PLAIN 		//Proposed LeNet-5 using PlainText
+    * #define CPU			//Proposed LeNet-5 using ChiperText(by IPFE)
+    * #define GPU			//Proposed LeNet-5 using ChiperText(by cuFE)
 
 3) The testing function calls one of the predict functions.
 

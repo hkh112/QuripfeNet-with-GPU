@@ -636,7 +636,7 @@ void sec_CONVOLUTION_FORWARD(uint32_t input[INPUT][LENGTH_FEATURE1][LENGTH_FEATU
 		}
 #endif
 #ifdef GPU
-		Optimized 코드
+		//Optimized code
 		for (int o0 = 0; o0 < GETLENGTH(output[j]); ++o0)
 		{								
 			for (int o1 = 0; o1 < GETLENGTH(*(output[j])); ++o1)
